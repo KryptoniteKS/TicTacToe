@@ -1,0 +1,31 @@
+﻿@model TicTacToe.Models.Board
+
+@{
+    ViewBag.Title = "Initialize Defaults";
+}
+
+<!-- Use the BeginForm method to pass our TextBox value to our Home controller. This allows us to create a board with the correct dimensions. -->
+@using (Html.BeginForm("Game", "Home", FormMethod.Post))
+{
+
+    <h1>Welcome to Tic Tac Toe</h1>
+    <p>Tic Tac Toe is a competitive game in which two players seek to complete a row, column, or diagonal with their associated game pieces.</p>
+    <p>As such, every Tic Tac Toe game board has the same number of rows as columns, so a win can be managed fairly across all orientations of the board.</p>
+    <p style="justify-content: center">
+        In the case of this game, Player 1 is denoted by the System Innovators logo
+        <img src="~/Images/si-logo.jpg" alt="Smiley face" style="width:20px;height:20px;"> <!-- System Innovators Logo -->
+        and Player 2 is denoted by the Harris logo
+        <img src="~/Images/harris-logo.jfif" alt="Smiley face" style="width:20px;height:20px;"> <!-- Harris Logo -->
+    </p>
+
+    <!-- Creates a Textbox that supplies the controller with the Dimension parameter. It then calls that controller, so the Game view loads. -->
+    <div class="row">
+        @Html.TextBoxFor(board => board.Dimension, new {
+            @placeholder = "Default: 3",
+            @class = "bg-info"
+        })
+        <button class="btn-success" type="submit">Play</button>
+    </div>
+}
+
+

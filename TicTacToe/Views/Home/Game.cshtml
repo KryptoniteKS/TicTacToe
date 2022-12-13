@@ -1,0 +1,198 @@
+﻿@model  TicTacToe.Models.Board
+
+@{
+    ViewBag.Title = "Play Game";
+}
+
+<!-- Init globals -->
+<script type="text/javascript">
+    const SILogo = '@Url.Content("~/Images/si-logo.jpg")'; // Link to the SI Logo Image
+    const HarrisLogo = '@Url.Content("~/Images/harris-logo.jfif")'; // Link to the Harris Logo Image
+
+    var turn = true; // Global variable for whose turn it is. True = Player 1 (SI Logo) | False = Player 2 (Harris Logo)
+    var turnsTaken = 0;
+    var dimension = @Model.Dimension;
+    var board = new Array(dimension);
+
+    // Using the dimension variable, create a 2D array to represent our board. We will use this for win logic and update it as we place pieces on the board
+    for (var row = 0; row < dimension; row++)
+    {
+        board[row] = new Array(dimension);
+    }
+</script>
+
+<!-- Create the surrounding text for the game -->
+<div class="row">
+    <div class="col-md-8" style="padding-right: 0px">
+        <!-- Create a square board (dimension x dimension) -->
+        @for (int row = 0; row < Model.Dimension; row++)
+        {
+            <!-- Create the rows for the board -->
+            <div class="row">
+
+                @for (int col = 0; col < Model.Dimension; col++)
+                {
+                    <!-- Create the columns in each row, then fills each square with a button -->
+                    <div class="col-md-1">
+                        <button type="button" id="@(Model.PanelID)" onclick="placePiece(this.id)">
+                            <img class="hide" /> <!-- Keep Image hidden until it is set, otherwise we see an ugly border -->
+                        </button>
+                    </div>
+                    Model.PanelID++; // Each button has a unique ID. This allows us to set the image for each button in a JavaScript Script
+                }
+            </div>
+        }
+    </div>
+    <div class="col-md-4">
+        <h1>Tic Tac Toe Game</h1>
+        <h2 id="curTurn">Current Turn: Player 1</h2>
+        <h2 id="winnerLogo">Winner: </h2>
+        <h2 id="winnerText"></h2>
+        <h2>Refresh this page to play again or reset!</h2>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    // This function takes in the ID of a button and allows us to place an 'X' or an 'O', or in our terms, a company logo in place of the button.
+    function placePiece(buttonID) {
+        var logo = ''; // Variable that holds the path to each logo, depending on value of turn
+
+        // The variable turn keeps track of whose turn it is. Depending on whose turn it is, a different logo is placed on the board. True = SI | False = Harris
+        if (turn) {
+            logo = SILogo; // If turn is True, use SI Logo
+        }
+        else {
+            logo = HarrisLogo; // if turn is False, use Harris Logo
+        }
+
+        var thisButton = document.getElementById(buttonID); // Gets the button based on its ID, which is passed from the button itself
+        thisButton.style = 'padding: 0; border: 0; background: transparent;' // Invisible Button
+        thisButton.innerHTML = '<img src=' + logo + ' />'; // Set the button's image to the logo specified
+        thisButton.disabled = true; // Disable button after placing a piece on it. This eliminates invalid moves
+
+        var thisPlayerMark = (turn) ? 1 : 0; // Store player's mark
+        updateBoard(buttonID, thisPlayerMark);
+        turnsTaken++;
+
+
+        // Check if player has won/tied
+        if (checkWinCondition(thisPlayerMark)) {
+            updateWinner(logo);
+            disableAllButtons();
+        }
+        else if (turnsTaken == dimension * dimension) // If turnsTaken == max turns allowed
+        {
+            updateTie();
+            disableAllButtons();
+        }
+
+        turn = !turn; // Update whose turn it is
+        updateTurnText();
+
+    }
+
+    // Adds player's mark to our representation of the game board
+    function updateBoard(buttonID, thisPlayerMark) {
+        boardRow = Math.floor(buttonID / dimension);
+        boardCol = buttonID % dimension;
+
+        board[boardRow][boardCol] = thisPlayerMark;
+    }
+
+    // Updates the Current Turn text with which player's turn it is
+    function updateTurnText() {
+        var curTurnText = document.getElementById("curTurn");
+        var curPlayer = (turn) ? "Player 1" : "Player 2";
+        curTurnText.innerHTML = 'Current Turn: ' + curPlayer;
+    }
+
+    // Update the Winner Text to display if it is a Tie
+    function updateTie() {
+        var winnerLogo = document.getElementById("winnerLogo");
+        winnerLogo.innerHTML = '<img src=' + HarrisLogo + ' /> <img src=' + SILogo + ' />';
+
+        var winnerText = document.getElementById("winnerText");
+        winnerText.insertAdjacentText('afterbegin', 'It\'s a tie!');
+    }
+
+    // Updates the Winner Text on the right side of game board
+    function updateWinner(logo) {
+        var winnerLogo = document.getElementById("winnerLogo");
+        winnerLogo.insertAdjacentHTML('beforeend', '<img src=' + logo + ' />');
+
+        var curPlayer = (turn) ? 'Player 1' : 'Player 2';
+        var winnerText = document.getElementById("winnerText");
+        winnerText.insertAdjacentText('afterbegin', (curPlayer + ' wins!'));
+    }
+
+    // Checks all possible Win Conditions
+    function checkWinCondition(thisPlayerMark) {
+        if (checkRowWin(thisPlayerMark)) return true;
+        if (checkColWin(thisPlayerMark)) return true;
+        if (checkDiagonalWin(thisPlayerMark)) return true;
+        if (checkReverseDiagonalWin(thisPlayerMark)) return true;
+
+        return false;
+    }
+
+    // Check Row Win Condition
+    function checkRowWin(thisPlayerMark) {
+
+        for (var row = 0; row < dimension; row++) {
+            var samePlayerMark = true;
+            for (var col = 0; col < dimension; col++) {
+                if (board[row][col] != thisPlayerMark) {
+                    samePlayerMark = false;
+                    break;
+                }
+            }
+            if (samePlayerMark == true) { return true; } // Win
+        }
+    }
+
+    // Check Column Win Condition
+    function checkColWin(thisPlayerMark) {
+
+        for (var col = 0; col < dimension; col++) {
+            var samePlayerMark = true;
+            for (var row = 0; row < dimension; row++) {
+                if (board[row][col] != thisPlayerMark) {
+                    samePlayerMark = false;
+                    break;
+                }
+            }
+            if (samePlayerMark == true) { return true; } // Win
+        }
+    }
+
+    // Check Regular Diagonal Win Condition
+    function checkDiagonalWin(thisPlayerMark) {
+
+        for (var row = 0; row < dimension; row++) {
+            if (board[row][row] != thisPlayerMark) { return false; }
+        }
+        return true; // Win
+    }
+
+    // Check Reverse Digonal Win Condition
+    function checkReverseDiagonalWin(thisPlayerMark) {
+
+        var samePlayerMark = true;
+        for (var row = 0; row < dimension; row++) {
+            col = dimension - 1 - row;
+            if (board[row][col] != thisPlayerMark) { return false; }
+        }
+        return true; // Win
+    }
+
+    // References all ButtonIDs and disables their functionality at the end of game.
+    function disableAllButtons() {
+
+        for (var curButtonID = 0; curButtonID < dimension * dimension; curButtonID++) {
+            let thisButton = document.getElementById(curButtonID)
+            thisButton.disabled = true;
+        }
+    }
+</script>
